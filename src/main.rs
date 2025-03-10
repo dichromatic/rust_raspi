@@ -7,7 +7,7 @@ use linux_embedded_hal::Delay;
 use linux_embedded_hal::{Pin, Spidev};
 
 extern crate ssd1675;
-use ssd1675::{display, Builder, Color, Dimensions, Display, GraphicDisplay, Rotation};
+use ssd1675::{Builder, Color, Dimensions, Display, GraphicDisplay, Rotation};
 
 // Graphics
 #[macro_use]
@@ -15,6 +15,7 @@ extern crate embedded_graphics;
 use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::prelude::*;
 use embedded_graphics::text::Text;
+use embedded_graphics::mono_font;
 
 // Font
 extern crate profont;
@@ -108,7 +109,7 @@ fn main() -> Result<(), std::io::Error> {
         .build()
         .expect("config not valid");
     let display = Display::new(controller,config);
-    let mut display = (GraphicDisplay::new(display,&mut black_buffer, &mut red_buffer));
+    let mut display = GraphicDisplay::new(display,&mut black_buffer, &mut red_buffer);
 
     // main display loop
     loop {
@@ -124,18 +125,17 @@ fn main() -> Result<(), std::io::Error> {
         Text::new(
             "HELLO!!!",
             Point::new(1, -4),
-            MonoTextStyle::new(&PROFONT_24_POINT, Color::Red)
+            MonoTextStyle::new(&mono_font::ascii::FONT_10X20, Color::Black)
         )
         .draw(&mut display)
         .expect("error drawing text");
+
+        display.update(&mut delay).expect("error updating display");
+        println!("Update...");
+
+        println!("Finished - going to sleep");
+        display.deep_sleep()?;
+
+        sleep(one_minute);
     }
-
-    display.update(&mut delay).expect("error updating display");
-    println!("Update...");
-
-    println!("Finished - going to sleep");
-    display.deep_sleep()?;
-
-    sleep(one_minute);
-
 }
